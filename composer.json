@@ -1,0 +1,23 @@
+{
+    "name": "kilahm/hack-scanner",
+    "description": "Recursively scan directories for hack code.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Isaac Leinweber",
+            "email": "brotchen@gmail.com"
+        }
+    ],
+    "require": {
+        "fredemmott/definition-finder": "^0.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "HackPack\\Scanner\\": "src/"
+        },
+        "classmap": [
+            "src/Filters.php"
+        ]
+    }
+}
