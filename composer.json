@@ -1,5 +1,5 @@
 {
-    "name": "kilahm/hack-scanner",
+    "name": "hackpack/hack-scanner",
     "description": "Recursively scan directories for hack code.",
     "type": "library",
     "license": "MIT",
@@ -19,5 +19,8 @@
         "classmap": [
             "src/Filters.php"
         ]
-    }
+    },
+    "replace": [
+        "hackpack/hack-class-scanner"
+    ]
 }
