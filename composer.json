@@ -10,6 +10,7 @@
         }
     ],
     "require": {
+        "hhvm": "*",
         "fredemmott/definition-finder": "^0.3"
     },
     "autoload": {
