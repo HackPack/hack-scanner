@@ -2,42 +2,70 @@
 
 namespace HackPack\Scanner;
 
+newtype FilterContainer<T> = shape(
+    'add' => Vector<T>,
+    'remove' => Vector<T>
+);
+
+newtype FilterList = shape(
+    'class' => FilterContainer<Filter\ClassFilter>,
+    'constant' => FilterContainer<Filter\ConstantFilter>,
+    'enum' => FilterContainer<Filter\EnumFilter>,
+    'function' => FilterContainer<Filter\FunctionFilter>,
+    'interface' => FilterContainer<Filter\InterfaceFilter>,
+    'newtype' => FilterContainer<Filter\NewtypeFilter>,
+    'trait' => FilterContainer<Filter\TraitFilter>,
+    'type' => FilterContainer<Filter\TypeFilter>,
+    'generic' => FilterContainer<Filter\GenericFilter>,
+);
+
 class Builder
 {
     private Set<string> $baseDirs = Set{};
-    private Filter\FilenameFilter $filenameFilter;
+    private Vector<Filter\FilenameFilter> $filenameFilters = Vector{};
+    private FilterList $filters = shape(
+        'class' => shape(
+            'add' => Vector{},
+            'remove' => Vector{}
+        ),
+        'constant' => shape(
+            'add' => Vector{},
+            'remove' => Vector{}
+        ),
+        'enum' => shape(
+            'add' => Vector{},
+            'remove' => Vector{}
+        ),
+        'function' => shape(
+            'add' => Vector{},
+            'remove' => Vector{}
+        ),
+        'interface' => shape(
+            'add' => Vector{},
+            'remove' => Vector{}
+        ),
+        'newtype' => shape(
+            'add' => Vector{},
+            'remove' => Vector{}
+        ),
+        'trait' => shape(
+            'add' => Vector{},
+            'remove' => Vector{}
+        ),
+        'type' => shape(
+            'add' => Vector{},
+            'remove' => Vector{}
+        ),
+        'generic' => shape(
+            'add' => Vector{},
+            'remove' => Vector{}
+        ),
+    );
 
-    private Filter\ClassFilter $classFilter;
-    private Filter\ConstantFilter $constantFilter;
-    private Filter\EnumFilter $enumFilter;
-    private Filter\FunctionFilter $functionFilter;
-    private Filter\InterfaceFilter $interfaceFilter;
-    private Filter\NewtypeFilter $newtypeFilter;
-    private Filter\TraitFilter $traitFilter;
-    private Filter\TypeFilter $typeFilter;
-
-    private Filter\GenericFilter $genericFilter;
-
-    public function __construct()
+    public function addPath(string $path) : this
     {
-        $accept = $p ==> true;
-        $reject = $c ==> false;
-
-        // Default reject individual definitions
-        $this->classFilter = $reject;
-        $this->constantFilter = $reject;
-        $this->enumFilter = $reject;
-        $this->functionFilter = $reject;
-        $this->interfaceFilter = $reject;
-        $this->newtypeFilter = $reject;
-        $this->traitFilter = $reject;
-        $this->typeFilter = $reject;
-
-        // Default accept definitions generically
-        $this->genericFilter = $accept;
-
-        // Default scan all files
-        $this->filenameFilter = $accept;
+        $this->baseDirs->add($path);
+        return $this;
     }
 
     public function addPaths(Traversable<string> $paths) : this
@@ -46,125 +74,117 @@ class Builder
         return $this;
     }
 
-    public function filterPaths(Filter\FilenameFilter $f) : this
+    public function filterFilenames(Filter\FilenameFilter $f) : this
     {
-        $this->filenameFilter = $f;
+        $this->filenameFilters->add($f);
         return $this;
     }
 
-    public function inclueAll() : this
+    public function inclueAll(Filter\GenericFilter $f = $x ==> true) : this
     {
-        $accept = $c ==> true;
-        $this->classFilter = $accept;
-        $this->constantFilter = $accept;
-        $this->enumFilter = $accept;
-        $this->functionFilter = $accept;
-        $this->interfaceFilter = $accept;
-        $this->newtypeFilter = $accept;
-        $this->traitFilter = $accept;
-        $this->typeFilter = $accept;
+        $this->filters['generic']['add']->add($f);
         return $this;
     }
 
     public function filterAll(Filter\GenericFilter $f) : this
     {
-        $this->genericFilter = $f;
+        $this->filters['generic']['remove']->add($f);
         return $this;
     }
 
-    public function includeClasses() : this
+    public function includeClasses(Filter\ClassFilter $f) : this
     {
-        $this->classFilter = $c ==> true;
+        $this->filters['class']['add']->add($f);
         return $this;
     }
 
-    public function includeConstants() : this
+    public function includeConstants(Filter\ConstantFilter $f) : this
     {
-        $this->constantFilter = $c ==> true;
+        $this->filters['constant']['add']->add($f);
         return $this;
     }
 
-    public function includeEnums() : this
+    public function includeEnums(Filter\EnumFilter $f) : this
     {
-        $this->enumFilter = $c ==> true;
+        $this->filters['enum']['add']->add($f);
         return $this;
     }
 
-    public function includeFunctions() : this
+    public function includeFunctions(Filter\FunctionFilter $f) : this
     {
-        $this->functionFilter = $c ==> true;
+        $this->filters['function']['add']->add($f);
         return $this;
     }
 
-    public function includeInterfaces() : this
+    public function includeInterfaces(Filter\InterfaceFilter $f) : this
     {
-        $this->interfaceFilter = $c ==> true;
+        $this->filters['interface']['add']->add($f);
         return $this;
     }
 
-    public function includeNewtypes() : this
+    public function includeNewtypes(Filter\NewtypeFilter $f) : this
     {
-        $this->newtypeFilter = $c ==> true;
+        $this->filters['newtype']['add']->add($f);
         return $this;
     }
 
-    public function includeTraits() : this
+    public function includeTraits(Filter\TraitFilter $f) : this
     {
-        $this->traitFilter = $c ==> true;
+        $this->filters['trait']['add']->add($f);
         return $this;
     }
 
-    public function includeTypes() : this
+    public function includeTypes(Filter\TypeFilter $f) : this
     {
-        $this->typeFilter = $c ==> true;
+        $this->filters['type']['add']->add($f);
         return $this;
     }
 
-    public function includeAndFilterClasses(Filter\ClassFilter $f) : this
+    public function filterClasses(Filter\ClassFilter $f) : this
     {
-        $this->classFilter = $f;
+        $this->filters['class']['remove']->add($f);
         return $this;
     }
 
-    public function includeAndFilterConstants(Filter\ConstantFilter $f) : this
+    public function filterConstants(Filter\ConstantFilter $f) : this
     {
-        $this->constantFilter = $f;
+        $this->filters['constant']['remove']->add($f);
         return $this;
     }
 
-    public function includeAndFilterEnums(Filter\EnumFilter $f) : this
+    public function filterEnums(Filter\EnumFilter $f) : this
     {
-        $this->enumFilter = $f;
+        $this->filters['enum']['remove']->add($f);
         return $this;
     }
 
-    public function includeAndFilterFunctions(Filter\FunctionFilter $f) : this
+    public function filterFunctions(Filter\FunctionFilter $f) : this
     {
-        $this->functionFilter = $f;
+        $this->filters['function']['remove']->add($f);
         return $this;
     }
 
-    public function includeAndFilterInterfaces(Filter\InterfaceFilter $f) : this
+    public function filterInterfaces(Filter\InterfaceFilter $f) : this
     {
-        $this->interfaceFilter = $f;
+        $this->filters['interface']['remove']->add($f);
         return $this;
     }
 
-    public function includeAndFilterNewtypes(Filter\NewtypeFilter $f) : this
+    public function filterNewtypes(Filter\NewtypeFilter $f) : this
     {
-        $this->newtypeFilter = $f;
+        $this->filters['newtype']['remove']->add($f);
         return $this;
     }
 
-    public function includeAndFilterTraits(Filter\TraitFilter $f) : this
+    public function filterTraits(Filter\TraitFilter $f) : this
     {
-        $this->traitFilter = $f;
+        $this->filters['trait']['remove']->add($f);
         return $this;
     }
 
-    public function includeAndFilterTypes(Filter\TypeFilter $f) : this
+    public function filterTypes(Filter\TypeFilter $f) : this
     {
-        $this->typeFilter = $f;
+        $this->filters['type']['remove']->add($f);
         return $this;
     }
 
@@ -172,15 +192,14 @@ class Builder
     {
         return new Scanner(
             $this->filesToScan(),
-            $this->classFilter,
-            $this->constantFilter,
-            $this->enumFilter,
-            $this->functionFilter,
-            $this->interfaceFilter,
-            $this->newtypeFilter,
-            $this->traitFilter,
-            $this->typeFilter,
-            $this->genericFilter,
+            $this->buildFilter($this->filters['class'], $x ==> false),
+            $this->buildFilter($this->filters['constant'], $x ==> false),
+            $this->buildFilter($this->filters['enum'], $x ==> false),
+            $this->buildFilter($this->filters['function'], $x ==> false),
+            $this->buildFilter($this->filters['interface'], $x ==> false),
+            $this->buildFilter($this->filters['newtype'], $x ==> false),
+            $this->buildFilter($this->filters['trait'], $x ==> false),
+            $this->buildFilter($this->filters['type'], $x ==> false),
         );
     }
 
@@ -197,8 +216,8 @@ class Builder
 
             // If user supplied path to a file, just add it to the list
             if(is_file($rp)) {
-                 $files->add($rp);
-                 return null;
+                $files->add($rp);
+                return null;
             }
 
             // Path is to a directory
@@ -217,6 +236,32 @@ class Builder
         });
 
         // Filter the files based on user preferences
-        return $files->filter($this->filenameFilter);
+        $composedFilter = $filename ==> array_reduce(
+            $this->filenameFilters,
+            ($result, $filter) ==> $result && $filter($filename),
+            // Default accept the file
+            true
+        );
+        return $files->filter($composedFilter);
+    }
+
+
+    private function buildFilter<T>(FilterContainer<Filter\Filter<T>> $filters, Filter\Filter<T> $default) : Filter\Filter<T>
+    {
+        if($filters['add']->isEmpty()) {
+            return $default;
+        }
+
+        // The definition must be added generically or specifically
+        // The definition must pass all generic and specific filters
+        return $n ==>
+            (
+                array_reduce($filters['add'], ($result, $filter) ==> $result || $filter($n), false) ||
+                array_reduce($this->filters['generic']['add'], ($result, $filter) ==> $result || $filter($n), false)
+            ) && (
+                array_reduce($filters['remove'], ($result, $filter) ==> $result && $filter($n), true) &&
+                array_reduce($this->filters['generic']['remove'], ($result, $filter) ==> $result && $filter($n), true)
+            )
+            ;
     }
 }

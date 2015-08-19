@@ -34,22 +34,18 @@ class Scanner
         Filter\NewtypeFilter $newtypeFilter,
         Filter\TraitFilter $traitFilter,
         Filter\TypeFilter $typeFilter,
-
-        Filter\GenericFilter $genericFilter,
     )
     {
-        // Apply the specific filter and the generic filter
-        $composedFilter = $filter ==> ($object ==> $filter($object) && $genericFilter($object));
         foreach($files as $filename) {
             $parser = FileParser::FromFile($filename);
-            $this->classes->addAll($parser->getClasses()->filter($composedFilter($classFilter)));
-            $this->constants->addAll($parser->getConstants()->filter($composedFilter($constantFilter)));
-            $this->enums->addAll($parser->getEnums()->filter($composedFilter($enumFilter)));
-            $this->functions->addAll($parser->getFunctions()->filter($composedFilter($functionFilter)));
-            $this->interfaces->addAll($parser->getInterfaces()->filter($composedFilter($interfaceFilter)));
-            $this->newtypes->addAll($parser->getNewtypes()->filter($composedFilter($newtypeFilter)));
-            $this->traits->addAll($parser->getTraits()->filter($composedFilter($traitFilter)));
-            $this->types->addAll($parser->getTypes()->filter($composedFilter($typeFilter)));
+            $this->classes->addAll($parser->getClasses()->filter($classFilter));
+            $this->constants->addAll($parser->getConstants()->filter($constantFilter));
+            $this->enums->addAll($parser->getEnums()->filter($enumFilter));
+            $this->functions->addAll($parser->getFunctions()->filter($functionFilter));
+            $this->interfaces->addAll($parser->getInterfaces()->filter($interfaceFilter));
+            $this->newtypes->addAll($parser->getNewtypes()->filter($newtypeFilter));
+            $this->traits->addAll($parser->getTraits()->filter($traitFilter));
+            $this->types->addAll($parser->getTypes()->filter($typeFilter));
         }
     }
 

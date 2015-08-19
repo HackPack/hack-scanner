@@ -14,6 +14,8 @@ use FredEmmott\DefinitionFinder\ScannedType;
 
 type FilenameFilter = (function(string):bool);
 
+type Filter<T> = (function(T):bool);
+
 type ClassFilter = (function(ScannedBasicClass):bool);
 type ConstantFilter = (function(ScannedConstant):bool);
 type EnumFilter = (function(ScannedEnum):bool);
