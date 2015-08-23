@@ -11,7 +11,7 @@
     ],
     "require": {
         "hhvm": "*",
-        "fredemmott/definition-finder": "^0.3"
+        "fredemmott/definition-finder": "^0.3.4"
     },
     "autoload": {
         "psr-4": {
@@ -21,7 +21,7 @@
             "src/Filters.php"
         ]
     },
-    "replace": [
-        "hackpack/hack-class-scanner"
-    ]
+    "replace": {
+        "hackpack/hack-class-scanner": "^1.0"
+    }
 }
