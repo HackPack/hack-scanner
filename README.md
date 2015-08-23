@@ -158,44 +158,28 @@ $scanner->getAutoloadArray() === [
 ## Reference
 
 ### Builder options
+```php
+public function addPath(string $path): this
+public function addPaths(Traversable<string> $paths): this
+```
+Cumulatively add base paths to search. Note that all base paths will be searched recursively.
 
-<dl>
-    <dt>
-        `public function addPath(string $path): this`
-    </dt>
-    <dt>
-        `public function addPaths(Traversable<string> $paths): this`
-    </dt>
-    <dd>
-        Cumulatively add base paths to search. Note that all base paths will be searched recursively.
-    </dd>
-    <dt>
-        `public function filterFilenames((function(string):bool) $filter): this`
-    </dt>
-    <dd>
-        Add a filename filter to the list.  For a file to be scanned, all registered filters must return true
-        when passed the full path of the file.
+```php
+public function filterFilenames((function(string):bool) $filter): this
+```
+Add a filename filter to the list.  For a file to be scanned, all registered filters must return true when passed the full path of the file.
 
-        Use this to prevent a subfolder and/or particular files from being scanned.
-    </dd>
-    <dt>
-        `public function includeClasses((function(ScannedBasicClass):bool) $filter): this`
-    </dt>
-    <dt>
-        `public function includeConstants((function(ScannedConstant):bool) $filter): this`
-    </dt>
-    <dt>
-        Add a type of definition to the list, optionally filtering the type with the passed callback.
-        These methods may be called multiple times; each time they are called, the list may potentially grow.
-    </dt>
-    <dt>
-        `public function filterClasses((function(ScannedBasicClass):bool) $filter): this`
-    </dt>
-    <dt>
-        `public function filterConstants((function(ScannedConstant):bool) $filter): this`
-    </dt>
-    <dt>
-        Filter the list of definitions.  These methods may be called multiple times; each time they are called,
-        the list may potentially shrink.
-    </dt>
-</dl>
+Use this to prevent a subfolder and/or particular files from being scanned.
+
+```php
+public function includeClasses((function(ScannedBasicClass):bool) $filter): this
+public function includeConstants((function(ScannedConstant):bool) $filter): this
+```
+Add a type of definition to the list, optionally filtering the type with the passed callback.
+These methods may be called multiple times; each time they are called, the list may potentially grow.
+
+```php
+public function filterClasses((function(ScannedBasicClass):bool) $filter): this
+public function filterConstants((function(ScannedConstant):bool) $filter): this
+```
+Filter the list of definitions.  These methods may be called multiple times; each time they are called, the list may potentially shrink.
