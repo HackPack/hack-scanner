@@ -157,29 +157,40 @@ $scanner->getAutoloadArray() === [
 
 ## Reference
 
-### Builder options
+### Builder API
+
+#### Filenames
+
+The following two methods add to the list of base paths to be scanned.  Note that all base paths are
+scanned recursively.  If you wish to exclude a subdirectory of a base path, use the filename filter (below).
 ```php
 public function addPath(string $path): this
 public function addPaths(Traversable<string> $paths): this
 ```
-Cumulatively add base paths to search. Note that all base paths will be searched recursively.
-
+The following method registers a filename filter with the builder.  For a file to be loaded and scanned,
+all registered filters must return `true` when passed the full path to the file.  Filename filters are useful
+for excluding a subdirectory of a base path.
 ```php
 public function filterFilenames((function(string):bool) $filter): this
 ```
-Add a filename filter to the list.  For a file to be scanned, all registered filters must return true when passed the full path of the file.
 
-Use this to prevent a subfolder and/or particular files from being scanned.
+#### Including definitions
+The following methods instruct the scanner to include the referenced definition type (class, interface, enum, etc.).
+The methods may be called many times, where each time an inclusionary filter callback is registered.  For a
+definition to be listed, at least one of the registered inclusionary callbacks must return true.
 
+Note that the default callback will allow any definition, making a simple `$builder->includeClasses();` call
+include all class definitions.
 ```php
-public function includeClasses((function(ScannedBasicClass):bool) $filter): this
-public function includeConstants((function(ScannedConstant):bool) $filter): this
+public function includeClasses((function(ScannedBasicClass):bool = $x ==> true) $filter): this
+public function includeConstants((function(ScannedConstant):bool) $filter = $x ==> true): this
 ```
-Add a type of definition to the list, optionally filtering the type with the passed callback.
-These methods may be called multiple times; each time they are called, the list may potentially grow.
 
+#### Excluding definitions
+The following methods register filter callbacks for the referenced definition type (class, interface, enum, etc.).
+The methods may be called many times, where each time an exclusionary filter callback is registered.  For a
+definition to be listed, all registered filters must return true.
 ```php
 public function filterClasses((function(ScannedBasicClass):bool) $filter): this
 public function filterConstants((function(ScannedConstant):bool) $filter): this
 ```
-Filter the list of definitions.  These methods may be called multiple times; each time they are called, the list may potentially shrink.
