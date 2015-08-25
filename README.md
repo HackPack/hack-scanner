@@ -184,6 +184,12 @@ include all class definitions.
 ```php
 public function includeClasses((function(ScannedBasicClass):bool = $x ==> true) $filter): this
 public function includeConstants((function(ScannedConstant):bool) $filter = $x ==> true): this
+public function includeEnums((function(ScannedEnum):bool) $filter = $x ==> true): this
+public function includeFunctions((function(ScannedFunction):bool) $filter = $x ==> true): this
+public function includeInterfaces((function(ScannedInterface):bool) $filter = $x ==> true): this
+public function includeNewtypes((function(ScannedNewtype):bool) $filter = $x ==> true): this
+public function includeTraits((function(ScannedTrait):bool) $filter = $x ==> true): this
+public function includeTypes((function(ScannedType):bool) $filter = $x ==> true): this
 ```
 
 #### Excluding definitions
@@ -193,4 +199,10 @@ definition to be listed, all registered filters must return true.
 ```php
 public function filterClasses((function(ScannedBasicClass):bool) $filter): this
 public function filterConstants((function(ScannedConstant):bool) $filter): this
+public function filterEnums((function(ScannedEnum):bool) $filter): this
+public function filterFunctions((function(ScannedFunction):bool) $filter): this
+public function filterInterfaces((function(ScannedInterface):bool) $filter): this
+public function filterNewtypes((function(ScannedNewtype):bool) $filter): this
+public function filterTraits((function(ScannedTrait):bool) $filter): this
+public function filterTypes((function(ScannedType):bool) $filter): this
 ```
