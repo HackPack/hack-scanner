@@ -226,7 +226,6 @@ class Builder
 
         // Recursively scan all directories for all readable files
         array_walk($canonicalDirs, $dir ==> {
-            /* HH_FIXME[2049] No HHI */
             $dIterator = new \RecursiveDirectoryIterator($dir);
             foreach($dIterator as $finfo) {
                 if($finfo->isFile() && $finfo->isReadable()){
