@@ -12,7 +12,7 @@ use FredEmmott\DefinitionFinder\ScannedNewtype;
 use FredEmmott\DefinitionFinder\ScannedTrait;
 use FredEmmott\DefinitionFinder\ScannedType;
 
-class Scanner
+class Scanner implements Contract\Scanner
 {
     private Vector<ScannedBasicClass> $classes = Vector{};
     private Vector<ScannedConstant> $constants = Vector{};
@@ -23,29 +23,23 @@ class Scanner
     private Vector<ScannedTrait> $traits = Vector{};
     private Vector<ScannedType> $types = Vector{};
 
+    private Set<string> $files;
     public function __construct(
-        private Set<string> $files,
-
-        Filter\ClassFilter $classFilter,
-        Filter\ConstantFilter $constantFilter,
-        Filter\EnumFilter $enumFilter,
-        Filter\FunctionFilter $functionFilter,
-        Filter\InterfaceFilter $interfaceFilter,
-        Filter\NewtypeFilter $newtypeFilter,
-        Filter\TraitFilter $traitFilter,
-        Filter\TypeFilter $typeFilter,
+        Traversable<string> $files,
+        private Filter\FilterSet $filters,
     )
     {
-        foreach($files as $filename) {
+        $this->files = new Set($files);
+        foreach($this->files as $filename) {
             $parser = FileParser::FromFile($filename);
-            $this->classes->addAll($parser->getClasses()->filter($classFilter));
-            $this->constants->addAll($parser->getConstants()->filter($constantFilter));
-            $this->enums->addAll($parser->getEnums()->filter($enumFilter));
-            $this->functions->addAll($parser->getFunctions()->filter($functionFilter));
-            $this->interfaces->addAll($parser->getInterfaces()->filter($interfaceFilter));
-            $this->newtypes->addAll($parser->getNewtypes()->filter($newtypeFilter));
-            $this->traits->addAll($parser->getTraits()->filter($traitFilter));
-            $this->types->addAll($parser->getTypes()->filter($typeFilter));
+            $this->classes->addAll($parser->getClasses()->filter($filters['class']));
+            $this->constants->addAll($parser->getConstants()->filter($filters['constant']));
+            $this->enums->addAll($parser->getEnums()->filter($filters['enum']));
+            $this->functions->addAll($parser->getFunctions()->filter($filters['function']));
+            $this->interfaces->addAll($parser->getInterfaces()->filter($filters['interface']));
+            $this->newtypes->addAll($parser->getNewtypes()->filter($filters['newtype']));
+            $this->traits->addAll($parser->getTraits()->filter($filters['trait']));
+            $this->types->addAll($parser->getTypes()->filter($filters['type']));
         }
     }
 

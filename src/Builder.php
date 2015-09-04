@@ -2,6 +2,8 @@
 
 namespace HackPack\Scanner;
 
+use HackPack\Scanner\Contract\Scanner;
+
 newtype FilterContainer<T> = shape(
     'add' => Vector<T>,
     'remove' => Vector<T>
@@ -61,6 +63,19 @@ class Builder
             'remove' => Vector{}
         ),
     );
+
+    private (function(Traversable<string>, Filter\FilterSet):Scanner) $scannerGenerator;
+
+    public function __construct(
+        ?(function(Traversable<string>, Filter\FilterSet):Scanner) $scannerGenerator = null
+    )
+    {
+        if($scannerGenerator === null) {
+             $this->scannerGenerator = ($list, $set) ==> new \HackPack\Scanner\Scanner($list, $set);
+        } else {
+            $this->scannerGenerator = $scannerGenerator;
+        }
+    }
 
     public function addPath(string $path) : this
     {
@@ -188,18 +203,21 @@ class Builder
         return $this;
     }
 
-    public function getScanner() : Scanner
+    public function getScanner() : Contract\Scanner
     {
-        return new Scanner(
+        $gen = $this->scannerGenerator;
+        return $gen(
             $this->filesToScan(),
-            $this->buildFilter($this->filters['class'], $x ==> false),
-            $this->buildFilter($this->filters['constant'], $x ==> false),
-            $this->buildFilter($this->filters['enum'], $x ==> false),
-            $this->buildFilter($this->filters['function'], $x ==> false),
-            $this->buildFilter($this->filters['interface'], $x ==> false),
-            $this->buildFilter($this->filters['newtype'], $x ==> false),
-            $this->buildFilter($this->filters['trait'], $x ==> false),
-            $this->buildFilter($this->filters['type'], $x ==> false),
+            shape(
+                'class' => $this->buildFilter($this->filters['class'], $x ==> false),
+                'constant' => $this->buildFilter($this->filters['constant'], $x ==> false),
+                'enum' => $this->buildFilter($this->filters['enum'], $x ==> false),
+                'function' => $this->buildFilter($this->filters['function'], $x ==> false),
+                'interface' => $this->buildFilter($this->filters['interface'], $x ==> false),
+                'newtype' => $this->buildFilter($this->filters['newtype'], $x ==> false),
+                'trait' => $this->buildFilter($this->filters['trait'], $x ==> false),
+                'type' => $this->buildFilter($this->filters['type'], $x ==> false),
+            ),
         );
     }
 
