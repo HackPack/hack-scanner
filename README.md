@@ -51,7 +51,7 @@ $scanner = (new Builder())
 // Recursively scan all files in the two paths as well as the file referenced for class definitions only
 $scanner = (new Builder())
     ->addPaths(Vector{'/interesting/path/one', '/interesting/path/two', '../relative/path/to/file.php'})
-    ->includeAllClasses()
+    ->includeClasses()
     ->getScanner();
 ```
 
@@ -59,7 +59,7 @@ $scanner = (new Builder())
 
 Sometimes scanning an entire directory tree is not desirable, but referencing each child folder/file would be
 quite tedious.  Also you may only want to locate a subset of Classes (for example) defined in a particular set of files.
-To accomplish this, you may set a filtering callback on the builder.
+To accomplish this, you may set filters on the builder.
 
 ```php
 <?hh
@@ -79,18 +79,17 @@ $scanner = (new Builder())
     ->includeClasses($c ==> preg_match('/^HackPack\\/', $c->getName()))
 ```
 
-All filter callbacks must have a signature of `function(Scanned*):bool` where `Scanned*` stands for one of the following
+See [Filters.php](https://github.com/HackPack/hack-scanner/blob/master/src/Filters.php) for the signature of the filters.  Also see [definitions-finder](https://github.com/fredemmott/definitions-finder) for more information about the objects passed to most filters.
 
-* ScannedBasicClass
-* ScannedConstant
-* ScannedEnum
-* ScannedFunction
-* ScannedInterface
-* ScannedNewtype
-* ScannedTrait
-* ScannedType
+### Filters included (Planned)
 
-See [definitions-finder](https://github.com/fredemmott/definitions-finder) for more information about these classes.
+Many useful filters may be generated using the static methods of `HackPack\Scanner\Filter`.
+
+#### Filter::inNamespace(string $namespace) : GenericFilter
+This filter may be applied to any definition type.  It will only allow definitions who are in the namespace given, or a subnamespace.
+
+#### Filter::hasAttribute(string $attributeName, mixed $value = null) : GenericFilter
+This filter may be applied to any definition type.  It will allow definitions that have been annotated with an [attribute](http://docs.hhvm.com/manual/en/hack.attributes.php) named as specified.  The optional second parameter will restrict the condition further to only include those attributes that include the specified value, matched loosely.  Please note that attribute values may only be strings or integers.
 
 ## The Scanner Object
 
@@ -159,50 +158,50 @@ $scanner->getAutoloadArray() === [
 
 ### Builder API
 
-#### Filenames
-
-The following two methods add to the list of base paths to be scanned.  Note that all base paths are
+##### addPath(string $path): this
+##### addPaths(Traversable<string> $paths): this
+Add a base path or a list of base paths to be scanned.  Note that all base paths are
 scanned recursively.  If you wish to exclude a subdirectory of a base path, use the filename filter (below).
-```php
-public function addPath(string $path): this
-public function addPaths(Traversable<string> $paths): this
-```
-The following method registers a filename filter with the builder.  For a file to be loaded and scanned,
+
+##### filterFilenames(FilenameFilter $filter): this
+Register a filename filter with the builder.  For a file to be loaded and scanned,
 all registered filters must return `true` when passed the full path to the file.  Filename filters are useful
 for excluding a subdirectory of a base path.
-```php
-public function filterFilenames((function(string):bool) $filter): this
-```
 
-#### Including definitions
-The following methods instruct the scanner to include the referenced definition type (class, interface, enum, etc.).
-The methods may be called many times, where each time an inclusionary filter callback is registered.  For a
-definition to be listed, at least one of the registered inclusionary callbacks must return true.
+See [Filters.php](https://github.com/HackPack/hack-scanner/blob/master/src/Filters.php) for the signature of the filters.
+
+##### includeClasses(ClassFilter $filter): this
+##### includeConstants(ConstantFilter $filter): this
+##### includeEnums(EnumFilter $filter): this
+##### includeFunctions(FunctionFilter $filter): this
+##### includeInterfaces(InterfaceFilter $filter): this
+##### includeNewtypes(NewtypeFilter $filter): this
+##### includeTraits(TraitFilter $filter): this
+##### includeTypes(TypeFilter $filter): this
+Instruct the scanner to include a definition type, optionally filtered.
 
 Note that the default callback will allow any definition, making a simple `$builder->includeClasses();` call
 include all class definitions.
-```php
-public function includeClasses((function(ScannedBasicClass):bool = $x ==> true) $filter): this
-public function includeConstants((function(ScannedConstant):bool) $filter = $x ==> true): this
-public function includeEnums((function(ScannedEnum):bool) $filter = $x ==> true): this
-public function includeFunctions((function(ScannedFunction):bool) $filter = $x ==> true): this
-public function includeInterfaces((function(ScannedInterface):bool) $filter = $x ==> true): this
-public function includeNewtypes((function(ScannedNewtype):bool) $filter = $x ==> true): this
-public function includeTraits((function(ScannedTrait):bool) $filter = $x ==> true): this
-public function includeTypes((function(ScannedType):bool) $filter = $x ==> true): this
-```
 
-#### Excluding definitions
-The following methods register filter callbacks for the referenced definition type (class, interface, enum, etc.).
+See [Filters.php](https://github.com/HackPack/hack-scanner/blob/master/src/Filters.php) for the signature of the filters.
+
+##### filterClasses(ClassFilter $filter): this
+##### filterConstants(ConstantFilter $filter): this
+##### filterEnums(EnumFilter $filter): this
+##### filterFunctions(FunctionFilter $filter): this
+##### filterInterfaces(InterfaceFilter $filter): this
+##### filterNewtypes(NewtypeFilter $filter): this
+##### filterTraits(TraitFilter $filter): this
+##### filterTypes(TypeFilter $filter): this
+
+Register filter callbacks for the referenced definition type (class, interface, enum, etc.).
 The methods may be called many times, where each time an exclusionary filter callback is registered.  For a
 definition to be listed, all registered filters must return true.
-```php
-public function filterClasses((function(ScannedBasicClass):bool) $filter): this
-public function filterConstants((function(ScannedConstant):bool) $filter): this
-public function filterEnums((function(ScannedEnum):bool) $filter): this
-public function filterFunctions((function(ScannedFunction):bool) $filter): this
-public function filterInterfaces((function(ScannedInterface):bool) $filter): this
-public function filterNewtypes((function(ScannedNewtype):bool) $filter): this
-public function filterTraits((function(ScannedTrait):bool) $filter): this
-public function filterTypes((function(ScannedType):bool) $filter): this
-```
+
+See [Filters.php](https://github.com/HackPack/hack-scanner/blob/master/src/Filters.php) for the signature of the filters.
+
+##### includeAll(GenericFilter $filter): this
+##### filterAll(GenericFilter $filter): this
+Calling `includeAll` will include definitions of any type, as long as the optional generic filter passed allows.  Like the other `include` methods, the default filter will allow all definitions.
+
+Calling `filterAll` will remove definitions of all types that do not pass the filter.
