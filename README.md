@@ -44,7 +44,7 @@ use HackPack\Scanner\Builder;
 
 // Scan all files recursively searching in the script's parent folder for all names.
 $scanner = (new Builder())
-    ->addPath(Vector{__DIR__})
+    ->addPath(__DIR__)
     ->includeAll()
     ->getScanner();
 
@@ -90,7 +90,7 @@ All filter callbacks must have a signature of `function(Scanned*):bool` where `S
 * ScannedTrait
 * ScannedType
 
-See [definitions-finder](https://github.com/fredemmott/definitions-finder) for more information.
+See [definitions-finder](https://github.com/fredemmott/definitions-finder) for more information about these classes.
 
 ## The Scanner Object
 
