@@ -17,11 +17,18 @@
         "psr-4": {
             "HackPack\\Scanner\\": "src/"
         },
-        "classmap": [
-            "src/Filters.php"
-        ]
+        "files": ["src/Filters.php"]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "HackPack\\Scanner\\Test\\": "test/"
+        }
     },
     "replace": {
         "hackpack/hack-class-scanner": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.8",
+        "91carriage/phpunit-hhi": "^4.8"
     }
 }
