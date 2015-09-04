@@ -209,14 +209,14 @@ class Builder
         return $gen(
             $this->filesToScan(),
             shape(
-                'class' => $this->buildFilter($this->filters['class'], $x ==> false),
-                'constant' => $this->buildFilter($this->filters['constant'], $x ==> false),
-                'enum' => $this->buildFilter($this->filters['enum'], $x ==> false),
-                'function' => $this->buildFilter($this->filters['function'], $x ==> false),
-                'interface' => $this->buildFilter($this->filters['interface'], $x ==> false),
-                'newtype' => $this->buildFilter($this->filters['newtype'], $x ==> false),
-                'trait' => $this->buildFilter($this->filters['trait'], $x ==> false),
-                'type' => $this->buildFilter($this->filters['type'], $x ==> false),
+                'class' => $this->buildFilter($this->filters['class']),
+                'constant' => $this->buildFilter($this->filters['constant']),
+                'enum' => $this->buildFilter($this->filters['enum']),
+                'function' => $this->buildFilter($this->filters['function']),
+                'interface' => $this->buildFilter($this->filters['interface']),
+                'newtype' => $this->buildFilter($this->filters['newtype']),
+                'trait' => $this->buildFilter($this->filters['trait']),
+                'type' => $this->buildFilter($this->filters['type']),
             ),
         );
     }
@@ -225,32 +225,39 @@ class Builder
     {
         $files = Set{};
         // Canonicalize and ensure all paths are readable
-        $canonicalDirs = $this->baseDirs->map($name ==> {
-            $rp = realpath($name);
-            if($rp === false || ! is_readable($rp)) {
-                // Need to be able to find and read the path
-                return null;
-            }
+        $canonicalDirs = $this->baseDirs
+            ->toVector()
+            ->map($name ==> {
+            $finfo = new \SplFileInfo($name);
 
             // If user supplied path to a file, just add it to the list
-            if(is_file($rp)) {
-                $files->add($rp);
-                return null;
+            if(
+                $finfo->isFile() &&
+                !$finfo->isDir() &&
+                $finfo->isReadable()
+            ) {
+                $files->add($finfo->getRealPath());
             }
-
-            // Path is to a directory
-            return $rp;
-        })->filter($path ==> is_string($path));
+            return $finfo;
+        })
+        // Only look for readable directories
+        ->filter($finfo ==> $finfo->isDir() && $finfo->isReadable());
 
         // Recursively scan all directories for all readable files
-        array_walk($canonicalDirs, $dir ==> {
-            $dIterator = new \RecursiveDirectoryIterator($dir);
+        foreach($canonicalDirs as $finfo) {
+            $dIterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($finfo->getRealPath())
+            );
             foreach($dIterator as $finfo) {
-                if($finfo->isFile() && $finfo->isReadable()){
-                    $files->add($finfo->getPath());
+                if(
+                    $finfo->isFile() &&
+                    $finfo->isReadable() &&
+                    !$finfo->isDir()
+                ){
+                    $files->add($finfo->getRealPath());
                 }
             }
-        });
+        }
 
         // Filter the files based on user preferences
         $composedFilter = $filename ==> array_reduce(
@@ -263,15 +270,16 @@ class Builder
     }
 
 
-    private function buildFilter<T>(FilterContainer<Filter\Filter<T>> $filters, Filter\Filter<T> $default) : Filter\Filter<T>
+    private function buildFilter<T>(FilterContainer<Filter\Filter<T>> $filters) : Filter\Filter<T>
     {
+        // If not explicitly added, then reject it
         if($filters['add']->isEmpty()) {
-            return $default;
+            $filters['add']->add((T $x) ==> false);
         }
 
         // The definition must be added generically or specifically
         // The definition must pass all generic and specific filters
-        return $n ==>
+        return (T $n) ==>
             (
                 array_reduce($filters['add'], ($result, $filter) ==> $result || $filter($n), false) ||
                 array_reduce($this->filters['generic']['add'], ($result, $filter) ==> $result || $filter($n), false)
