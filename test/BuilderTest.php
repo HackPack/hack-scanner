@@ -22,8 +22,11 @@ class BuilderTest extends \PHPUnit_Framework_TestCase
         });
     }
 
-    private function checkFileList(Set<string> $expected) : void
+    private function checkFileList(Builder $builder, Set<string> $expected) : void
     {
+        // Needed to have the builder invoke the factory passed to it
+        $builder->getScanner();
+
         $missingFiles = $expected->toSet()->removeAll($this->filesFromBuilder);
         $extraFiles = $this->filesFromBuilder->toSet()->removeAll($expected);
 
@@ -33,19 +36,52 @@ class BuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testBuilderFindsAllFiles() : void
     {
-        $this->makeBuilder()->addPath(__DIR__ . '/Fixture')->getScanner();
+        $this->checkFileList(
+            $this->makeBuilder()->addPath(__DIR__ . '/Fixture'),
+            Set{
+                __DIR__ . '/Fixture/more/file1',
+                    __DIR__ . '/Fixture/more/file2',
+                    __DIR__ . '/Fixture/more/file3.txt',
+                    __DIR__ . '/Fixture/sub/file1',
+                    __DIR__ . '/Fixture/sub/file2',
+                    __DIR__ . '/Fixture/sub/file3.txt',
+                    __DIR__ . '/Fixture/hack.hh',
+                    __DIR__ . '/Fixture/noextension',
+                    __DIR__ . '/Fixture/php.php',
+                    __DIR__ . '/Fixture/text.txt',
+            },
+        );
+    }
 
-        $this->checkFileList(Set{
-            __DIR__ . '/Fixture/more/file1',
-            __DIR__ . '/Fixture/more/file2',
-            __DIR__ . '/Fixture/more/file3.txt',
-            __DIR__ . '/Fixture/sub/file1',
-            __DIR__ . '/Fixture/sub/file2',
-            __DIR__ . '/Fixture/sub/file3.txt',
-            __DIR__ . '/Fixture/hack.hh',
-            __DIR__ . '/Fixture/noextension',
-            __DIR__ . '/Fixture/php.php',
-            __DIR__ . '/Fixture/text.txt',
-        });
+    public function testBuilderFiltersFiles() : void
+    {
+        $desiredFile = __DIR__ . '/Fixture/more/file1';
+        $builder = $this->makeBuilder()
+            ->addPath(__DIR__ . '/Fixture')
+            ->filterFilenames($n ==> $n === $desiredFile);
+
+        $this->checkFileList(
+            $builder,
+            Set{$desiredFile},
+        );
+    }
+
+    public function testBuilderFindsDirectoryAndFile() : void
+    {
+        $builder = $this->makeBuilder()
+            ->addPaths(Set{
+                __DIR__ . '/Fixture/sub',
+            })
+            ->addPath(__DIR__ . '/Fixture/hack.hh');
+
+        $this->checkFileList(
+            $builder,
+            Set{
+                __DIR__ . '/Fixture/sub/file1',
+                __DIR__ . '/Fixture/sub/file2',
+                __DIR__ . '/Fixture/sub/file3.txt',
+                __DIR__ . '/Fixture/hack.hh',
+            },
+        );
     }
 }
